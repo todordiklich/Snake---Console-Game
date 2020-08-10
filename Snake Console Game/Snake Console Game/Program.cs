@@ -29,7 +29,7 @@ namespace Snake_Console_Game
 
 
             Console.CursorVisible = false;
-            Console.SetWindowSize(boundaryWidth + 5, boundaryHeight + 5);
+            Console.SetWindowSize((boundaryWidth + 5), (boundaryHeight + 2));
 
             //Initial place of the snake on the board
             RenderSnake(applesEaten, xPosition, yPosition, out xPosition, out yPosition);
