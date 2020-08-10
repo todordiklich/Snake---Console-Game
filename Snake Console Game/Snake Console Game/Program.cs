@@ -10,77 +10,74 @@ namespace Snake_Console_Game
 
         static void Main(string[] args)
         {
-            int xPosition = 35;
-            int yPosition = 20;
-            int gameSpeed = 150;
+            Random random = new Random();
+
+            int[] xPosition = new int[50];
+            xPosition[0] = random.Next(2, boundaryWidth - 2); ;
+            int[] yPosition = new int[50];
+            yPosition[0] = random.Next(2, boundaryHeight - 2); ;
+
+            int appleXDim = 10;
+            int appleYDim = 10;
+            int applesEaten = 0;
+
+            decimal gameSpeed = 150m;
 
             bool isGameOn = true;
             bool isBoundaryHit = false;
+            bool isAppleEaten = false;
+
 
             Console.CursorVisible = false;
             Console.SetWindowSize(boundaryWidth + 5, boundaryHeight + 5);
-            Console.SetCursorPosition(xPosition, yPosition);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine((char)2);
 
+            //Initial place of the snake on the board
+            RenderSnake(applesEaten, xPosition, yPosition, out xPosition, out yPosition);
+
+            //Initial place of an apple on the board
+            SetApplePosition(random, out appleXDim, out appleYDim);
+            RenderApple(appleXDim, appleYDim);
+
+            //Create boundary
             BuildBoundary();
 
+            //Move the snake
             ConsoleKey command = Console.ReadKey().Key;
-
             do
             {
                 switch (command)
                 {
                     case ConsoleKey.LeftArrow:
-                        Console.SetCursorPosition(xPosition, yPosition);
+                        Console.SetCursorPosition(xPosition[0], yPosition[0]);
                         Console.Write(" ");
-                        xPosition--;
+                        xPosition[0]--;
                         break;
+
                     case ConsoleKey.UpArrow:
-                        Console.SetCursorPosition(xPosition, yPosition);
+                        Console.SetCursorPosition(xPosition[0], yPosition[0]);
                         Console.Write(" ");
-                        yPosition--;
+                        yPosition[0]--;
                         break;
+
                     case ConsoleKey.RightArrow:
-                        Console.SetCursorPosition(xPosition, yPosition);
+                        Console.SetCursorPosition(xPosition[0], yPosition[0]);
                         Console.Write(" ");
-                        xPosition++;
+                        xPosition[0]++;
                         break;
+
                     case ConsoleKey.DownArrow:
-                        Console.SetCursorPosition(xPosition, yPosition);
+                        Console.SetCursorPosition(xPosition[0], yPosition[0]);
                         Console.Write(" ");
-                        yPosition++;
-                        break;
-
-
-                    case ConsoleKey.A:
-                        Console.SetCursorPosition(xPosition, yPosition);
-                        Console.Write(" ");
-                        xPosition--;
-                        break;
-                    case ConsoleKey.D:
-                        Console.SetCursorPosition(xPosition, yPosition);
-                        Console.Write(" ");
-                        xPosition++;
-                        break;
-                    case ConsoleKey.S:
-                        Console.SetCursorPosition(xPosition, yPosition);
-                        Console.Write(" ");
-                        yPosition++;
-                        break;
-                    case ConsoleKey.W:
-                        Console.SetCursorPosition(xPosition, yPosition);
-                        Console.Write(" ");
-                        yPosition--;
+                        yPosition[0]++;
                         break;
                 }
 
-                Console.SetCursorPosition(xPosition, yPosition);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine((char)2);
+                //Render the snake
+                RenderSnake(applesEaten, xPosition, yPosition, out xPosition, out yPosition);
 
-                isBoundaryHit = DidSnakeHitBoundary(xPosition, yPosition);
+                isBoundaryHit = DidSnakeHitBoundary(xPosition[0], yPosition[0]);
 
+                //Check if snake hits a boundary
                 if (isBoundaryHit)
                 {
                     isGameOn = false;
@@ -88,16 +85,80 @@ namespace Snake_Console_Game
                     Console.WriteLine("Game Over");
                 }
 
+                //Check if apple is eaten
+                isAppleEaten = DetermineIfAppleWasEaten(xPosition[0], yPosition[0], appleXDim, appleYDim);
+
+                //Place an apple
+                if (isAppleEaten)
+                {
+                    SetApplePosition(random, out appleXDim, out appleYDim);
+                    RenderApple(appleXDim, appleYDim);
+                    applesEaten++;
+                    gameSpeed *= 0.925m;
+                }
+
+                //Check if direction of the snake has beed changed
                 if (Console.KeyAvailable)
                 {
                     command = Console.ReadKey().Key;
                 }
 
-                Thread.Sleep(gameSpeed);
+                Thread.Sleep((int)gameSpeed);
 
             } while (isGameOn);
+        }
 
+        private static void RenderSnake(int applesEaten, int[] xPositionIn, int[] yPositionIn, out int[] xPositionOut, out int[] yPositionOut)
+        {
+            //Render the head
+            Console.SetCursorPosition(xPositionIn[0], yPositionIn[0]);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine((char)2);
 
+            //Render the body
+            for (int i = 1; i < applesEaten + 1; i++)
+            {
+                Console.SetCursorPosition(xPositionIn[i], yPositionIn[i]);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("o");
+            }
+
+            //Erase last part of the body
+            Console.SetCursorPosition(xPositionIn[applesEaten + 1], yPositionIn[applesEaten + 1]);
+            Console.WriteLine(" ");
+
+            //Record position of each body part
+            for (int i = applesEaten + 1; i > 0; i--)
+            {
+                xPositionIn[i] = xPositionIn[i - 1];
+                yPositionIn[i] = yPositionIn[i - 1];
+            }
+
+            xPositionOut = xPositionIn;
+            yPositionOut = yPositionIn;
+        }
+
+        private static bool DetermineIfAppleWasEaten(int xPosition, int yPosition, int appleXDim, int appleYDim)
+        {
+            if (xPosition == appleXDim && yPosition == appleYDim)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void SetApplePosition(Random random, out int appleXDim, out int appleYDim)
+        {
+            appleXDim = random.Next(2, boundaryWidth - 2);
+            appleYDim = random.Next(2, boundaryHeight - 2);
+        }
+
+        private static void RenderApple(int appleXDim, int appleYDim)
+        {
+            Console.SetCursorPosition(appleXDim, appleYDim);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write((char)64);
         }
 
         private static bool DidSnakeHitBoundary(int xPosition, int yPosition)
@@ -112,8 +173,6 @@ namespace Snake_Console_Game
 
         private static void BuildBoundary()
         {
-
-
             for (int i = 1; i <= boundaryHeight; i++)
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -122,6 +181,7 @@ namespace Snake_Console_Game
                 Console.SetCursorPosition(boundaryWidth, i);
                 Console.Write('#');
             }
+
             for (int i = 1; i <= boundaryWidth; i++)
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -130,7 +190,6 @@ namespace Snake_Console_Game
                 Console.SetCursorPosition(i, boundaryHeight);
                 Console.Write('#');
             }
-
         }
     }
 }
